@@ -1,0 +1,359 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Home, Star, Heart, Circle, Square, Triangle, Music, Sun, Plus, Minus } from 'lucide-react';
+
+const GameSuite = () => {
+  const [currentGame, setCurrentGame] = useState('menu');
+  const [difficulty, setDifficulty] = useState('easy');
+  const [score, setScore] = useState(0);
+  const [gameState, setGameState] = useState({});
+  const [feedback, setFeedback] = useState('');
+
+  // Pattern Memory Game State
+  const [sequence, setSequence] = useState([]);
+  const [playerSequence, setPlayerSequence] = useState([]);
+  const [showingSequence, setShowingSequence] = useState(false);
+
+  // Word Association Game State
+  const [currentWord, setCurrentWord] = useState('');
+  const [wordOptions, setWordOptions] = useState([]);
+  const [selectedWord, setSelectedWord] = useState('');
+
+  // Simple Math Game State
+  const [equation, setEquation] = useState({ num1: 0, num2: 0, answer: 0 });
+  const [userAnswer, setUserAnswer] = useState('');
+
+  // Category Sorting Game State
+  const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const wordPairs = {
+    easy: [
+      { word: 'Dog', related: ['Cat', 'Pet', 'Animal'], unrelated: ['Car', 'Book'] },
+      { word: 'Cup', related: ['Drink', 'Tea', 'Coffee'], unrelated: ['Shoe', 'Hat'] },
+      { word: 'Bed', related: ['Sleep', 'Rest', 'Pillow'], unrelated: ['Fork', 'Phone'] }
+    ],
+    medium: [
+      { word: 'Garden', related: ['Plants', 'Flowers', 'Soil'], unrelated: ['Piano', 'Chair'] },
+      { word: 'Kitchen', related: ['Cook', 'Food', 'Stove'], unrelated: ['Beach', 'Car'] },
+      { word: 'Doctor', related: ['Nurse', 'Hospital', 'Health'], unrelated: ['Tree', 'Sun'] }
+    ]
+  };
+
+  const categoryItems = {
+    easy: {
+      categories: ['Fruits', 'Animals'],
+      items: [
+        { name: 'Apple', category: 'Fruits' },
+        { name: 'Dog', category: 'Animals' },
+        { name: 'Banana', category: 'Fruits' },
+        { name: 'Cat', category: 'Animals' }
+      ]
+    },
+    medium: {
+      categories: ['Clothing', 'Food', 'Transportation'],
+      items: [
+        { name: 'Shirt', category: 'Clothing' },
+        { name: 'Bread', category: 'Food' },
+        { name: 'Car', category: 'Transportation' },
+        { name: 'Pants', category: 'Clothing' },
+        { name: 'Bus', category: 'Transportation' },
+        { name: 'Pizza', category: 'Food' }
+      ]
+    }
+  };
+
+  // Pattern Memory Game Logic
+  const startPatternGame = () => {
+    const shapes = difficulty === 'easy' ? 3 : 4;
+    const newSequence = Array.from(
+      { length: shapes },
+      () => Math.floor(Math.random() * 4)
+    );
+    setSequence(newSequence);
+    setPlayerSequence([]);
+    setShowingSequence(true);
+    showSequence(newSequence);
+  };
+
+  const showSequence = async (seq) => {
+    setFeedback('Watch the pattern...');
+    for (let i = 0; i < seq.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+    setShowingSequence(false);
+    setFeedback('Now repeat the pattern!');
+  };
+
+  // Word Association Game Logic
+  const startWordGame = () => {
+    const pairs = wordPairs[difficulty];
+    const randomPair = pairs[Math.floor(Math.random() * pairs.length)];
+    setCurrentWord(randomPair.word);
+    
+    const options = [
+      ...randomPair.related,
+      ...randomPair.unrelated
+    ].sort(() => Math.random() - 0.5);
+    
+    setWordOptions(options);
+    setSelectedWord('');
+  };
+
+  // Math Game Logic
+  const startMathGame = () => {
+    const max = difficulty === 'easy' ? 10 : 20;
+    const num1 = Math.floor(Math.random() * max) + 1;
+    const num2 = Math.floor(Math.random() * max) + 1;
+    setEquation({ num1, num2, answer: num1 + num2 });
+    setUserAnswer('');
+  };
+
+  // Category Sorting Game Logic
+  const startCategoryGame = () => {
+    const gameData = categoryItems[difficulty];
+    setCategories(gameData.categories);
+    setItems(gameData.items.sort(() => Math.random() - 0.5));
+    setSelectedItem(null);
+  };
+
+  const handleGameSelect = (game) => {
+    setCurrentGame(game);
+    setScore(0);
+    switch (game) {
+      case 'pattern':
+        startPatternGame();
+        break;
+      case 'words':
+        startWordGame();
+        break;
+      case 'math':
+        startMathGame();
+        break;
+      case 'categories':
+        startCategoryGame();
+        break;
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center p-4 space-y-4">
+      {currentGame === 'menu' && (
+        <Card className="w-full max-w-lg p-6">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Cognitive Games Suite</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-4">
+              <Button 
+                onClick={() => handleGameSelect('pattern')}
+                className="h-16 text-lg"
+              >
+                Pattern Memory Game
+              </Button>
+              <Button 
+                onClick={() => handleGameSelect('words')}
+                className="h-16 text-lg"
+              >
+                Word Association Game
+              </Button>
+              <Button 
+                onClick={() => handleGameSelect('math')}
+                className="h-16 text-lg"
+              >
+                Simple Math Game
+              </Button>
+              <Button 
+                onClick={() => handleGameSelect('categories')}
+                className="h-16 text-lg"
+              >
+                Category Sorting Game
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {currentGame !== 'menu' && (
+        <div className="w-full max-w-lg">
+          <div className="flex justify-between items-center mb-4">
+            <Button onClick={() => setCurrentGame('menu')} variant="outline">
+              Back to Menu
+            </Button>
+            <span className="text-xl font-bold">Score: {score}</span>
+          </div>
+
+          {/* Pattern Memory Game */}
+          {currentGame === 'pattern' && (
+            <Card className="p-4">
+              <CardHeader>
+                <CardTitle>Pattern Memory</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  {[Home, Star, Heart, Circle].map((Icon, index) => (
+                    <Button
+                      key={index}
+                      onClick={() => {
+                        if (!showingSequence) {
+                          const newPlayerSequence = [...playerSequence, index];
+                          setPlayerSequence(newPlayerSequence);
+                          
+                          if (newPlayerSequence[newPlayerSequence.length - 1] !== sequence[newPlayerSequence.length - 1]) {
+                            setFeedback('Try again!');
+                            setTimeout(startPatternGame, 1500);
+                          } else if (newPlayerSequence.length === sequence.length) {
+                            setScore(score + 1);
+                            setFeedback('Excellent!');
+                            setTimeout(startPatternGame, 1500);
+                          }
+                        }
+                      }}
+                      className="h-24"
+                      disabled={showingSequence}
+                    >
+                      <Icon size={32} />
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Word Association Game */}
+          {currentGame === 'words' && (
+            <Card className="p-4">
+              <CardHeader>
+                <CardTitle>Word Association</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center mb-4 text-2xl font-bold">
+                  {currentWord}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {wordOptions.map((word, index) => (
+                    <Button
+                      key={index}
+                      onClick={() => {
+                        setSelectedWord(word);
+                        const currentPair = wordPairs[difficulty].find(p => p.word === currentWord);
+                        if (currentPair.related.includes(word)) {
+                          setScore(score + 1);
+                          setFeedback('Correct!');
+                          setTimeout(startWordGame, 1500);
+                        } else {
+                          setFeedback('Try again!');
+                          setTimeout(startWordGame, 1500);
+                        }
+                      }}
+                      className="h-16"
+                    >
+                      {word}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Simple Math Game */}
+          {currentGame === 'math' && (
+            <Card className="p-4">
+              <CardHeader>
+                <CardTitle>Simple Math</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center mb-4 text-2xl">
+                  {equation.num1} + {equation.num2} = ?
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((num) => (
+                    <Button
+                      key={num}
+                      onClick={() => {
+                        const newAnswer = userAnswer + num;
+                        setUserAnswer(newAnswer);
+                        
+                        if (parseInt(newAnswer) === equation.answer) {
+                          setScore(score + 1);
+                          setFeedback('Correct!');
+                          setTimeout(startMathGame, 1500);
+                        } else if (newAnswer.length >= equation.answer.toString().length) {
+                          setFeedback('Try again!');
+                          setTimeout(() => setUserAnswer(''), 1500);
+                        }
+                      }}
+                      className="h-16"
+                    >
+                      {num}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Category Sorting Game */}
+          {currentGame === 'categories' && (
+            <Card className="p-4">
+              <CardHeader>
+                <CardTitle>Category Sorting</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {items.map((item, index) => (
+                      <Button
+                        key={index}
+                        onClick={() => setSelectedItem(item)}
+                        className={`h-16 ${selectedItem === item ? 'ring-2 ring-blue-500' : ''}`}
+                      >
+                        {item.name}
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  {selectedItem && (
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      {categories.map((category, index) => (
+                        <Button
+                          key={index}
+                          onClick={() => {
+                            if (selectedItem.category === category) {
+                              setScore(score + 1);
+                              setFeedback('Correct!');
+                              setItems(items.filter(i => i !== selectedItem));
+                              setSelectedItem(null);
+                              if (items.length === 1) {
+                                setTimeout(startCategoryGame, 1500);
+                              }
+                            } else {
+                              setFeedback('Try again!');
+                              setSelectedItem(null);
+                            }
+                          }}
+                          className="h-16"
+                        >
+                          {category}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Alert className="mt-4">
+            <AlertDescription>{feedback}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default GameSuite;
